@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,6 +24,7 @@
                         'shimmer': 'shimmer 2s infinite',
                         'glide-in': 'glideIn 1s ease-out forwards',
                         'pulse-slow': 'pulseSlow 3s infinite ease-in-out',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
                     },
                     keyframes: {
                         /* Button shimmer effect */
@@ -40,6 +41,11 @@
                         'pulseSlow': {
                             '0%, 100%': { transform: 'scale(1)', opacity: '0.8' },
                             '50%': { transform: 'scale(1.4)', opacity: '1' },
+                        },
+                        /* Mobile menu fade in */
+                        'fadeIn': {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
                         }
                     }
                 }
@@ -66,13 +72,7 @@
         ========================================
         */
 
-        /* Add smooth scrolling for anchor links */
-        html {
-            scroll-behavior: smooth;
-        }
-
         body {
-            /* Set the primary background */
             background-color: #111318;
             color: #A9AEBB;
             font-family: 'Inter', sans-serif;
@@ -80,57 +80,76 @@
             cursor: none;
             overflow-x: hidden; /* Prevent horizontal scroll */
         }
-
-        /* --- 1. The "Living" Cursor --- */
-        #custom-cursor {
-            position: fixed;
-            left: 0;
-            top: 0;
-            pointer-events: none;
-            z-index: 9999;
-            transition: transform 0.2s ease-out, width 0.3s ease-out, height 0.3s ease-out, background-color 0.3s ease;
-            mix-blend-mode: exclusion; /* Cool effect on text */
+        
+        /* Ensure smooth scroll for anchor links */
+        html {
+            scroll-behavior: smooth;
+            /* Offset for fixed header */
+            scroll-padding-top: 80px; 
         }
 
-        #cursor-dot {
-            width: 10px;
-            height: 10px;
-            background-color: #00FFAB;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: all 0.3s ease-out;
-            animation: pulseSlow 3s infinite ease-in-out;
+        /* --- 1. The "Living" Cursor (Desktop Only) --- */
+        @media (min-width: 1024px) {
+            #custom-cursor {
+                position: fixed;
+                left: 0;
+                top: 0;
+                pointer-events: none;
+                z-index: 9999;
+                transition: transform 0.2s ease-out, width 0.3s ease-out, height 0.3s ease-out, background-color 0.3s ease;
+                mix-blend-mode: exclusion; /* Cool effect on text */
+            }
+
+            #cursor-dot {
+                width: 10px;
+                height: 10px;
+                background-color: #00FFAB;
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                transition: all 0.3s ease-out;
+                animation: pulseSlow 3s infinite ease-in-out;
+            }
+            
+            #cursor-text {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 10px;
+                font-weight: 700;
+                color: #00FFAB;
+                opacity: 0;
+                transition: opacity 0.3s ease-out;
+            }
+
+            /* Cursor "Grow" State (on links/buttons) */
+            #custom-cursor.grow #cursor-dot {
+                transform: translate(-50%, -50%) scale(5);
+                background-color: #00FFAB;
+                opacity: 0.5;
+            }
+            
+            /* Cursor "View" State (on media) */
+            #custom-cursor.view #cursor-dot {
+                width: 50px;
+                height: 50px;
+                background-color: #00FFAB;
+                opacity: 0.2;
+                animation: none; /* Stop pulsing */
+            }
+            #custom-cursor.view #cursor-text {
+                opacity: 1;
+            }
         }
         
-        #cursor-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 10px;
-            font-weight: 700;
-            color: #00FFAB;
-            opacity: 0;
-            transition: opacity 0.3s ease-out;
-        }
-
-        /* Cursor "Grow" State (on links/buttons) */
-        #custom-cursor.grow #cursor-dot {
-            transform: translate(-50%, -50%) scale(5);
-            background-color: #00FFAB;
-            opacity: 0.5;
-        }
-        
-        /* Cursor "View" State (on media) */
-        #custom-cursor.view #cursor-dot {
-            width: 50px;
-            height: 50px;
-            background-color: #00FFAB;
-            opacity: 0.2;
-            animation: none; /* Stop pulsing */
-        }
-        #custom-cursor.view #cursor-text {
-            opacity: 1;
+        /* On mobile, use the native cursor */
+        @media (max-width: 1023px) {
+            body {
+                cursor: auto;
+            }
+            #custom-cursor {
+                display: none;
+            }
         }
 
         /* --- 2. Custom Scrollbar --- */
@@ -141,5 +160,754 @@
             background: #0A0A0E;
         }
         ::-webkit-scrollbar-thumb {
+            background-color: #00FFAB;
+            border-radius: 3px;
+        }
+
+        /* --- 3. Generative Hero Canvas --- */
+        #hero-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+            opacity: 0.4; /* Subtle, in the background */
+            transition: opacity 0.5s ease-out;
+        }
+        
+        /* Fade hero canvas on scroll */
+        body.scrolled #hero-canvas {
+            opacity: 0.1 !important;
+        }
+        
+        /* --- 4. Main Content Styling --- */
+        main, header, footer {
+            position: relative;
+            z-index: 2; /* Ensure content is above hero canvas */
+        }
+        
+        header {
+            background-color: rgba(17, 19, 24, 0.8); /* Midnight Steel w/ transparency */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid #1B1D24; /* Deep Graphene border */
+        }
+        
+        /* --- 5. "Purposeful Kineticism" Animations --- */
+        .reveal {
+            opacity: 0;
+        }
+        .reveal.revealed {
+            animation: glideIn 1s ease-out forwards;
+        }
+        .reveal-delay-1 { animation-delay: 0.1s; }
+        .reveal-delay-2 { animation-delay: 0.2s; }
+        .reveal-delay-3 { animation-delay: 0.3s; }
+
+        /* Button shimmer effect */
+        .btn-shimmer {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .btn-shimmer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            transform: translateX(-150%);
+            transition: transform 0.6s ease;
+        }
+        .btn-shimmer:hover::before {
+            transform: translateX(250%);
+        }
+        .btn-shimmer:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 171, 0.5); /* Kinetic glow */
+        }
+        
+        /* Nav link active state */
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #00FFAB;
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            color: #FFFFFF;
+        }
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+        
+        /* Case Study B&W to Color effect */
+        .case-study-media {
+            filter: grayscale(100%);
+            transition: filter 0.5s ease;
+        }
+        .case-study-card:hover .case-study-media {
+            filter: grayscale(0%);
+        }
+        
+        /* Services sticky list active state */
+        .service-title.active {
+            color: #00FFAB;
+            transform: translateX(10px);
+        }
+        
+        /* --- 6. Mobile Menu --- */
+        #mobile-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: #0A0A0E; /* Obsidian Charcoal */
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: translateX(100%);
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        #mobile-menu.open {
+            transform: translateX(0);
+        }
+        
+        #mobile-menu .nav-link {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 700;
+            margin: 1.25rem 0; /* my-5 */
+            color: #A9AEBB;
+        }
+        #mobile-menu .nav-link.active {
+            color: #FFFFFF;
+        }
+        
+        /* Hamburger Button */
+        #mobile-menu-btn {
+            z-index: 110;
+        }
+        #mobile-menu-btn .line {
+            transition: all 0.3s ease-in-out;
+            background-color: #FFFFFF;
+        }
+        #mobile-menu-btn.open .line1 {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+        #mobile-menu-btn.open .line2 {
+            opacity: 0;
+        }
+        #mobile-menu-btn.open .line3 {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+
+    </style>
+</head>
+
+<body class="bg-midnight-steel text-neutral-grey font-sans selection:bg-kinetic-mint selection:text-midnight-steel">
+    
+    <!-- 1. "Living" Cursor (Desktop Only) -->
+    <div id="custom-cursor">
+        <div id="cursor-dot"></div>
+        <span id="cursor-text">VIEW</span>
+    </div>
+
+    <!-- 2. Generative Hero Background -->
+    <div id="hero-canvas"></div>
+
+    <!-- 3. Header & Navigation -->
+    <header class="fixed top-0 left-0 w-full p-6 md:p-8 z-50">
+        <div class="container mx-auto max-w-7xl flex justify-between items-center">
+            <!-- Logo -->
+            <a href="#home" class="font-bold text-xl text-white data-hoverable nav-link" data-section="home">
+                Motion<span class="text-kinetic-mint">.</span>
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex space-x-8">
+                <a href="#home" class="nav-link active data-hoverable" data-section="home">Home</a>
+                <a href="#vectors" class="nav-link data-hoverable" data-section="vectors">Our Vectors</a>
+                <a href="#motion" class="nav-link data-hoverable" data-section="motion">Our Motion</a>
+                <a href="#motive" class="nav-link data-hoverable" data-section="motive">The Motive</a>
+            </nav>
+            
+            <!-- CTA (visible on desktop) -->
+            <button class="hidden md:block btn-shimmer bg-kinetic-mint text-obsidian-charcoal font-bold py-3 px-6 rounded-md text-sm data-hoverable" data-modal-open="contact-modal">
+                Start the Reaction
+            </button>
+            
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-btn" class="md:hidden space-y-1.5 p-2">
+                <span class="line line1 block w-6 h-0.5"></span>
+                <span class="line line2 block w-6 h-0.5"></span>
+                <span class="line line3 block w-6 h-0.5"></span>
+            </button>
+        </div>
+    </header>
+    
+    <!-- Mobile Menu -->
+    <div id="mobile-menu">
+        <a href="#home" class="nav-link active data-hoverable" data-section="home">Home</a>
+        <a href="#vectors" class="nav-link data-hoverable" data-section="vectors">Our Vectors</a>
+        <a href="#motion" class="nav-link data-hoverable" data-section="motion">Our Motion</a>
+        <a href="#motive" class="nav-link data-hoverable" data-section="motive">The Motive</a>
+        <button class="btn-shimmer bg-kinetic-mint text-obsidian-charcoal font-bold py-4 px-8 rounded-md text-lg data-hoverable mt-8" data-modal-open="contact-modal">
+            Start the Reaction
+        </button>
+    </div>
+
+    <!-- 4. Main Content (Page Wrapper) -->
+    <main class="container mx-auto max-w-7xl px-6 md:px-8">
+
+        <!-- 
+        ========================================
+        PAGE 1: HOME
+        ========================================
+        -->
+        <section id="home" class="page-content min-h-screen flex items-center justify-center text-center pt-20">
+            <div class="relative z-10">
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-extrabold text-white reveal">
+                    Stop Standing Still.
+                </h1>
+                <p class="text-xl md:text-2xl text-neutral-grey max-w-3xl mx-auto mt-6 reveal reveal-delay-1">
+                    We are the kinetic energy behind the world's fastest-growing brands. 
+                    <span class="text-white">We are Motion Marketing.</span>
+                </p>
+            </div>
+        </section>
+
+        <!-- 
+        ========================================
+        PAGE 2: OUR VECTORS (Services)
+        ========================================
+        -->
+        <section id="vectors" class="page-content py-24 md:py-48 min-h-screen">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+                <!-- Sticky Title Column (Desktop) / Header (Mobile) -->
+                <div class="md:col-span-5">
+                    <div class="md:sticky md:top-32 space-y-8">
+                        <h2 class="text-5xl md:text-6xl font-bold text-white reveal">Our Vectors</h2>
+                        <div class="space-y-4">
+                            <h3 id="service-title-1" class="service-title active text-2xl font-bold text-neutral-grey transition-all duration-300 ease-out data-hoverable">
+                                Brand Velocity
+                            </h3>
+                            <h3 id="service-title-2" class="service-title text-2xl font-bold text-neutral-grey transition-all duration-300 ease-out data-hoverable">
+                                Performance SEO
+                            </h3>
+                            <h3 id="service-title-3" class="service-title text-2xl font-bold text-neutral-grey transition-all duration-300 ease-out data-hoverable">
+                                Data Synthesis
+                            </h3>
+                            <h3 id="service-title-4" class="service-title text-2xl font-bold text-neutral-grey transition-all duration-300 ease-out data-hoverable">
+                                Kinetic Content
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Scrolling Description Column -->
+                <div class="md:col-span-7 space-y-24 md:space-y-32 mt-12 md:mt-0">
+                    <div id="service-desc-1" class="service-description reveal">
+                        <h4 class="text-3xl font-bold text-white mb-4">Brand Velocity</h4>
+                        <p class="text-lg mb-4">
+                            A brand isn't a logo. It's a force. We don't just build brands; we accelerate them. We define your unique market position and build a high-momentum identity that cuts through the noise and creates its own gravity.
+                        </p>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li>Identity & Positioning</li>
+                            <li>Multi-channel Campaign Strategy</li>
+                            <li>Audience Momentum Mapping</li>
+                        </ul>
+                    </div>
+                    <div id="service-desc-2" class="service-description reveal">
+                        <h4 class="text-3xl font-bold text-white mb-4">Performance SEO</h4>
+                        <p class="text-lg mb-4">
+                            We treat search as a dynamic energy system, not a static checklist. Our approach identifies the potential energy in search trends and converts it into kinetic traffic, capturing high-intent users before your competitors even know they exist.
+                        </p>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li>Technical SEO Audits</li>
+                            <li>Predictive Keyword Analysis</li>
+                            <li>E-A-T & Authority Acceleration</li>
+                        </ul>
+                    </div>
+                    <div id="service-desc-3" class="service-description reveal">
+                        <h4 class="text-3xl font-bold text-white mb-4">Data Synthesis</h4>
+                        <p class="text-lg mb-4">
+                            Data is noise. Synthesis is power. We don't just report numbers; we find the hidden motion within them. We connect disparate data points to reveal the underlying forces driving your business, turning raw data into decisive action.
+                        </p>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li>Full-Funnel Attribution</li>
+                            <li>Customer Lifetime Value (CLV) Modeling</li>
+                            <li>Market & Competitor Analytics</li>
+                        </ul>
+                    </div>
+                    <div id="service-desc-4" class="service-description reveal">
+                        <h4 class="text-3xl font-bold text-white mb-4">Kinetic Content</h4>
+                        <p class="text-lg mb-4">
+                            Content that doesn't move people is static. We create high-impact assets—video, interactive, and written—designed for one purpose: to transfer energy to your audience, compelling them to act, share, and convert.
+                        </p>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li>Video & Motion Graphics</li>
+                            <li>Interactive Web Experiences</li>
+                            <li>Long-Form Thought Leadership</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 
+        ========================================
+        PAGE 3: OUR MOTION (Case Studies)
+        ========================================
+        -->
+        <section id="motion" class="page-content py-24 md:py-48 min-h-screen">
+            <h2 class="text-5xl md:text-6xl font-bold text-white mb-12 reveal">Our Motion: <span class="text-neutral-grey">Proof, Not Promises.</span></h2>
+            
+            <div class="space-y-24">
+                <!-- Case Study 1 -->
+                <div class="case-study-card grid grid-cols-1 md:grid-cols-12 gap-8 items-center reveal" data-hoverable-media="true">
+                    <div class="md:col-span-7">
+                        <img src="https://placehold.co/800x600/1B1D24/A9AEBB?text=Project+A+Visual" alt="Case Study 1" class="case-study-media w-full rounded-lg shadow-2xl">
+                    </div>
+                    <div class="md:col-span-5">
+                        <h3 class="text-3xl font-bold text-white mb-2">Project: Cybria</h3>
+                        <p class="text-lg text-neutral-grey mb-4">Accelerated a B2B SaaS from stealth to market leader in 18 months.</p>
+                        <div class="text-4xl font-bold text-kinetic-mint">
+                            +<span data-count-up="317">0</span>%
+                        </div>
+                        <div class="text-sm text-white">Organic Lead Velocity</div>
+                    </div>
+                </div>
+
+                <!-- Case Study 2 -->
+                <div class="case-study-card grid grid-cols-1 md:grid-cols-12 gap-8 items-center reveal" data-hoverable-media="true">
+                    <!-- On mobile, image is first. On desktop, text is first. -->
+                    <div class="md:col-span-7 md:col-start-6">
+                        <img src="https://placehold.co/800x600/1B1D24/A9AEBB?text=Project+B+Visual" alt="Case Study 2" class="case-study-media w-full rounded-lg shadow-2xl">
+                    </div>
+                    <div class="md:col-span-5 md:row-start-1">
+                        <h3 class="text-3xl font-bold text-white mb-2">Project: Nova</h3>
+                        <p class="text-lg text-neutral-grey mb-4">Reforged a legacy e-commerce brand for a new generation, capturing a new demographic.</p>
+                        <div class="text-4xl font-bold text-kinetic-mint">
+                            +<span data-count-up="1200">0</span>
+                        </div>
+                        <div class="text-sm text-white">Basis Point ROAS Improvement</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 
+        ========================================
+        PAGE 4: THE MOTIVE (About)
+        ========================================
+        -->
+        <section id="motive" class="page-content py-24 md:py-48 min-h-screen">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-5xl md:text-6xl font-bold text-white reveal">Energy is never lost.</h2>
+                <h2 class="text-5xl md:text-6xl font-bold text-white mb-8 reveal reveal-delay-1">It is transferred.</h2>
+                <p class="text-xl text-neutral-grey mb-12 reveal reveal-delay-2">
+                    Meet the minds behind the motion. We are a collective of strategists, creatives, and data scientists united by a single belief: that marketing is a force for momentum. We don't just build campaigns; we start reactions.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-24">
+                <!-- Team Member 1 -->
+                <div class="text-center reveal" data-hoverable-media="true">
+                    <img src="https://placehold.co/400x400/1B1D24/A9AEBB?text=Team+Portrait" alt="Team Member 1" class="case-study-media w-full h-auto rounded-lg mb-4">
+                    <h4 class="text-xl font-bold text-white">Alex Chen</h4>
+                    <p class="text-kinetic-mint">Chief Velocity Officer</p>
+                </div>
+                <!-- Team Member 2 -->
+                <div class="text-center reveal reveal-delay-1" data-hoverable-media="true">
+                    <img src="https://placehold.co/400x400/1B1D24/A9AEBB?text=Team+Portrait" alt="Team Member 2" class="case-study-media w-full h-auto rounded-lg mb-4">
+                    <h4 class="text-xl font-bold text-white">Maria Sanchez</h4>
+                    <p class="text-kinetic-mint">Head of Kinetic Content</p>
+                </div>
+                <!-- Team Member 3 -->
+                <div class="text-center reveal reveal-delay-2" data-hoverable-media="true">
+                    <img src="https://placehold.co/400x400/1B1D24/A9AEBB?text=Team+Portrait" alt="Team Member 3" class="case-study-media w-full h-auto rounded-lg mb-4">
+                    <h4 class="text-xl font-bold text-white">David Kim</h4>
+                    <p class="text-kinetic-mint">Lead Data Synthesist</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 
+    ========================================
+    FOOTER SECTION (with your info)
+    ========================================
+    -->
+    <footer class="py-24 bg-obsidian-charcoal border-t border-deep-graphene">
+        <div class="container mx-auto max-w-7xl px-6 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-16">
+            
+            <!-- Column 1: About -->
+            <div class="reveal">
+                <h3 class="font-bold text-xl text-white mb-4">
+                    Motion<span class="text-kinetic-mint">.</span>
+                </h3>
+                <p class="text-neutral-grey max-w-xs">
+                    We are the kinetic energy behind the world's fastest-growing brands. Stop standing still.
+                </p>
+            </div>
+            
+            <!-- Column 2: Connect (Your Info) -->
+            <div class="reveal reveal-delay-1">
+                <h3 class="text-lg font-bold text-white mb-4">Direct Connection</h3>
+                <div class="space-y-3">
+                    <p class="flex flex-col sm:flex-row">
+                        <span class="text-neutral-grey/70 w-20 inline-block">Email:</span>
+                        <a href="mailto:Jaren.Dev@proton.me" class="text-neutral-grey hover:text-kinetic-mint transition-colors data-hoverable break-all">Jaren.Dev@proton.me</a>
+                    </p>
+                    <p>
+                        <span class="text-neutral-grey/70 w-20 inline-block">Discord:</span>
+                        <span class="text-neutral-grey data-hoverable">KarmaCrew</span>
+                    </p>
+                    <p>
+                        <span class="text-neutral-grey/70 w-20 inline-block">Telegram:</span>
+                        <a href="https://t.me/Karma_Crew" target="_blank" rel="noopener noreferrer" class="text-neutral-grey hover:text-kinetic-mint transition-colors data-hoverable">@Karma_Crew</a>
+                    </p>
+                    <p>
+                        <span class="text-neutral-grey/70 w-20 inline-block">Reddit:</span>
+                        <a href="https://reddit.com/user/KarmaCrew" target="_blank" rel="noopener noreferrer" class="text-neutral-grey hover:text-kinetic-mint transition-colors data-hoverable">u/KarmaCrew</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Column 3: CTA -->
+            <div class="reveal reveal-delay-2">
+                <h3 class="text-lg font-bold text-white mb-4">Start a New Project?</h3>
+                <p class="text-neutral-grey mb-6">Let's apply our energy to your brand. Click below to start the reaction.</p>
+                <button class="btn-shimmer bg-kinetic-mint text-obsidian-charcoal font-bold py-3 px-6 rounded-md text-sm data-hoverable" data-modal-open="contact-modal">
+                    Start the Reaction
+                </button>
+            </div>
+
+        </div>
+        
+        <!-- Copyright -->
+        <div class="text-center text-neutral-grey/50 mt-24 pt-8 border-t border-deep-graphene reveal reveal-delay-3">
+            &copy; 2025 Motion Marketing. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- 
+    ========================================
+    MODAL: START THE REACTION (Contact)
+    ========================================
+    -->
+    <div id="contact-modal" class="fixed inset-0 bg-obsidian-charcoal bg-opacity-90 flex items-center justify-center p-4 z-[100] hidden animate-fade-in" data-modal>
+        <div class="bg-deep-graphene p-8 rounded-lg shadow-2xl w-full max-w-md relative reveal">
+            <!-- Close Button -->
+            <button class="absolute top-4 right-4 text-neutral-grey data-hoverable" data-modal-close="contact-modal">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            
+            <h2 class="text-3xl font-bold text-white mb-6">Start the Reaction</h2>
+            <form action="#" class="space-y-4">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-neutral-grey">Full Name</label>
+                    <input type="text" id="name" class="w-full bg-midnight-steel text-white p-3 rounded-md border border-deep-graphene focus:border-kinetic-mint focus:ring-0 outline-none">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-neutral-grey">Email</label>
+                    <input type="email" id="email" class="w-full bg-midnight-steel text-white p-3 rounded-md border border-deep-graphene focus:border-kinetic-mint focus:ring-0 outline-none">
+                </div>
+                <div>
+                    <label for="message" class="block text-sm font-medium text-neutral-grey">How can we apply our energy?</label>
+                    <textarea id="message" rows="4" class="w-full bg-midnight-steel text-white p-3 rounded-md border border-deep-graphene focus:border-kinetic-mint focus:ring-0 outline-none"></textarea>
+                </div>
+                <button type="submit" class="btn-shimmer w-full bg-kinetic-mint text-obsidian-charcoal font-bold py-3 px-6 rounded-md data-hoverable">
+                    Send Transmission
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- 
+    ========================================
+    JAVASCRIPT (All modules in one place)
+    ========================================
+    -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Define heroCanvas at the top level so all modules can access it.
+            const heroCanvas = document.getElementById('hero-canvas');
+            
+            /*
+            ========================================
+            MODULE 1: "LIVING" CURSOR (Desktop)
+            ========================================
+            */
+            const cursor = document.getElementById('custom-cursor');
+            if (cursor && window.matchMedia('(min-width: 1024px)').matches) {
+                const cursorText = document.getElementById('cursor-text');
+                
+                window.addEventListener('mousemove', (e) => {
+                    cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+                });
+
+                document.querySelectorAll('[data-hoverable]').forEach(el => {
+                    el.addEventListener('mouseenter', () => cursor.classList.add('grow'));
+                    el.addEventListener('mouseleave', () => cursor.classList.remove('grow'));
+                });
+
+                document.querySelectorAll('[data-hoverable-media]').forEach(el => {
+                    el.addEventListener('mouseenter', () => cursor.classList.add('view'));
+                    el.addEventListener('mouseleave', () => cursor.classList.remove('view'));
+                });
+            }
+
+            /*
+            ========================================
+            MODULE 2: GENERATIVE HERO (THREE.JS)
+            ========================================
+            */
+            if (heroCanvas) {
+                let scene, camera, renderer, particles, geometry;
+                let mouseX = 0, mouseY = 0;
+                const windowHalfX = window.innerWidth / 2;
+                const windowHalfY = window.innerHeight / 2;
+
+                function initThree() {
+                    scene = new THREE.Scene();
+                    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+                    camera.position.z = 1000;
+                    geometry = new THREE.BufferGeometry();
+                    const vertices = [];
+                    const numParticles = 5000;
+
+                    for (let i = 0; i < numParticles; i++) {
+                        vertices.push(Math.random() * 2000 - 1000, Math.random() * 2000 - 1000, Math.random() * 2000 - 1000);
+                    }
+                    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                    const material = new THREE.PointsMaterial({
+                        color: 0x00FFAB, size: 2, transparent: true, opacity: 0.7
+                    });
+                    particles = new THREE.Points(geometry, material);
+                    scene.add(particles);
+                    renderer = new THREE.WebGLRenderer({ canvas: heroCanvas, alpha: true });
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    renderer.setClearColor(0x000000, 0); 
+
+                    document.addEventListener('mousemove', onDocumentMouseMove);
+                    window.addEventListener('resize', onWindowResize);
+                }
+
+                function onWindowResize() {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+
+                function onDocumentMouseMove(event) {
+                    mouseX = (event.clientX - windowHalfX) * 0.5;
+                    mouseY = (event.clientY - windowHalfY) * 0.5;
+                }
+
+                function animateThree() {
+                    requestAnimationFrame(animateThree);
+                    const time = Date.now() * 0.00005;
+                    camera.position.x += (mouseX - camera.position.x) * 0.03;
+                    camera.position.y += (-mouseY - camera.position.y) * 0.03;
+                    camera.lookAt(scene.position);
+                    particles.rotation.x = time * 0.2;
+                    particles.rotation.y = time * 0.1;
+                    renderer.render(scene, camera);
+                }
+
+                initThree();
+                animateThree();
+            }
+            
+            // Fade hero canvas on scroll
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    document.body.classList.add('scrolled');
+                } else {
+                    document.body.classList.remove('scrolled');
+                }
+            });
+
+            /*
+            ========================================
+            MODULE 3: MOBILE NAVIGATION
+            ========================================
+            */
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuLinks = mobileMenu.querySelectorAll('.nav-link');
+
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenuBtn.classList.toggle('open');
+                mobileMenu.classList.toggle('open');
+            });
+
+            const closeMobileMenu = () => {
+                mobileMenuBtn.classList.remove('open');
+                mobileMenu.classList.remove('open');
+            };
+            
+            // Close menu when a link is clicked
+            mobileMenuLinks.forEach(link => {
+                link.addEventListener('click', closeMobileMenu);
+            });
+            
+            // Close menu when modal is opened
+            document.querySelectorAll('[data-modal-open]').forEach(btn => {
+                btn.addEventListener('click', closeMobileMenu);
+            });
+
+            /*
+            ========================================
+            MODULE 4: SCROLL-BASED INTERACTIONS
+            ========================================
+            */
+            const allNavLinks = document.querySelectorAll('.nav-link[data-section]');
+            const allSections = document.querySelectorAll('.page-content');
+            
+            // --- 4a. Count-Up Animation ---
+            function animateCountUp(el) {
+                const target = parseInt(el.getAttribute('data-count-up'), 10);
+                let current = 0;
+                const increment = Math.max(1, target / 100); // Ensure increment is at least 1
+                
+                function updateCount() {
+                    current += increment;
+                    if (current < target) {
+                        el.textContent = Math.ceil(current).toLocaleString();
+                        requestAnimationFrame(updateCount);
+                    } else {
+                        el.textContent = target.toLocaleString();
+                    }
+                }
+                updateCount();
+            }
+
+            // --- 4b. Sticky Service List Highlight (Desktop) ---
+            const serviceTitles = document.querySelectorAll('.service-title');
+            function updateActiveService(id) {
+                serviceTitles.forEach(title => {
+                    if (title.id === `service-title-${id}`) {
+                        title.classList.add('active');
+                    } else {
+                        title.classList.remove('active');
+                    }
+                });
+            }
+            
+            // --- 4c. Active Nav Link Highlighting ---
+            function updateActiveNav(id) {
+                allNavLinks.forEach(link => {
+                    if (link.getAttribute('data-section') === id) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }
+
+            // --- 4d. Intersection Observer ---
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: [0.1, 0.4, 0.9] // Multiple thresholds for different logic
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    // --- Reveal Animation ---
+                    if (entry.target.classList.contains('reveal') && entry.isIntersecting) {
+                        entry.target.classList.add('revealed');
+                    }
+
+                    // --- Count-Up Trigger ---
+                    if (entry.target.hasAttribute('data-count-up') && entry.isIntersecting) {
+                        animateCountUp(entry.target);
+                        observer.unobserve(entry.target); // Only count up once
+                    }
+
+                    // --- Sticky Service Trigger (Desktop) ---
+                    if (entry.target.classList.contains('service-description') && entry.intersectionRatio >= 0.4 && window.matchMedia('(min-width: 768px)').matches) {
+                        const id = entry.target.id.split('-')[2];
+                        updateActiveService(id);
+                    }
+                    
+                    // --- Active Nav Highlighting ---
+                    if (entry.target.classList.contains('page-content') && entry.intersectionRatio >= 0.4) {
+                        updateActiveNav(entry.target.id);
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all relevant elements
+            document.querySelectorAll('.reveal, [data-count-up], .service-description, .page-content').forEach(el => {
+                observer.observe(el);
+            });
+            
+            /*
+            ========================================
+            MODULE 5: MODAL LOGIC
+            ========================================
+            */
+            const openModalButtons = document.querySelectorAll('[data-modal-open]');
+            const closeModalButtons = document.querySelectorAll('[data-modal-close]');
+            const allModals = document.querySelectorAll('[data-modal]');
+
+            openModalButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const modalId = button.getAttribute('data-modal-open');
+                    document.getElementById(modalId).classList.remove('hidden');
+                });
+            });
+
+            const closeModal = (modalId) => {
+                 document.getElementById(modalId).classList.add('hidden');
+            };
+
+            closeModalButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const modalId = button.getAttribute('data-modal-close');
+                    closeModal(modalId);
+                });
+            });
+
+            // Close modal by clicking background
+            allModals.forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeModal(modal.id);
+                    }
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>
 
 

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motion Marketing - Stop Standing Still</title>
+    
+    <!-- 1. Tailwind Configuration (MUST come before the script) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'obsidian-charcoal': '#0A0A0E',
+                        'midnight-steel': '#111318',
+                        'deep-graphene': '#1B1D24',
+                        'kinetic-mint': '#00FFAB',
+                        'neutral-grey': '#A9AEBB',
+                    },
+                    animation: {
+                        'shimmer': 'shimmer 2s infinite',
+                        'glide-in': 'glideIn 1s ease-out forwards',
+                        'pulse-slow': 'pulseSlow 3s infinite ease-in-out',
+                    },
+                    keyframes: {
+                        /* Button shimmer effect */
+                        'shimmer': {
+                            '0%': { transform: 'translateX(-100%)' },
+                            '100%': { transform: 'translateX(100%)' },
+                        },
+                        /* Page content reveal animation */
+                        'glideIn': {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        /* Cursor idle pulse */
+                        'pulseSlow': {
+                            '0%, 100%': { transform: 'scale(1)', opacity: '0.8' },
+                            '50%': { transform: 'scale(1.4)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+    
+    <!-- 2. Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 3. Load Three.js (for Generative Hero) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- 4. Load Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <!-- 5. Custom CSS -->
+    <style>
+        /*
+        ========================================
+        CUSTOM CSS ("KINETIC NOIR" STYLING)
+        ========================================
+        */
+
+        /* Add smooth scrolling for anchor links */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            /* Set the primary background */
+            background-color: #111318;
+            color: #A9AEBB;
+            font-family: 'Inter', sans-serif;
+            /* Hide the default browser cursor */
+            cursor: none;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        /* --- 1. The "Living" Cursor --- */
+        #custom-cursor {
+            position: fixed;
+            left: 0;
+            top: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.2s ease-out, width 0.3s ease-out, height 0.3s ease-out, background-color 0.3s ease;
+            mix-blend-mode: exclusion; /* Cool effect on text */
+        }
+
+        #cursor-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #00FFAB;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease-out;
+            animation: pulseSlow 3s infinite ease-in-out;
+        }
+        
+        #cursor-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+            font-weight: 700;
+            color: #00FFAB;
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+        }
+
+        /* Cursor "Grow" State (on links/buttons) */
+        #custom-cursor.grow #cursor-dot {
+            transform: translate(-50%, -50%) scale(5);
+            background-color: #00FFAB;
+            opacity: 0.5;
+        }
+        
+        /* Cursor "View" State (on media) */
+        #custom-cursor.view #cursor-dot {
+            width: 50px;
+            height: 50px;
+            background-color: #00FFAB;
+            opacity: 0.2;
+            animation: none; /* Stop pulsing */
+        }
+        #custom-cursor.view #cursor-text {
+            opacity: 1;
+        }
+
+        /* --- 2. Custom Scrollbar --- */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0A0A0E;
+        }
+        ::-webkit-scrollbar-thumb {
+
+

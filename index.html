@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Motion Marketing - Stop Standing Still</title>
     
-    <!-- 1. Tailwind Configuration (MUST come before the script) -->
     <script>
         tailwind.config = {
             theme: {
@@ -25,6 +24,7 @@
                         'glide-in': 'glideIn 1s ease-out forwards',
                         'pulse-slow': 'pulseSlow 3s infinite ease-in-out',
                         'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'kinetic-bg': 'kinetic-bg 20s ease infinite', // New BG animation
                     },
                     keyframes: {
                         /* Button shimmer effect */
@@ -46,6 +46,12 @@
                         'fadeIn': {
                             '0%': { opacity: '0' },
                             '100%': { opacity: '1' },
+                        },
+                        /* NEW: Kinetic Noir Background Animation */
+                        'kinetic-bg': {
+                            '0%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' },
+                            '100%': { backgroundPosition: '0% 50%' },
                         }
                     }
                 }
@@ -53,18 +59,12 @@
         };
     </script>
     
-    <!-- 2. Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- 3. Load Three.js (for Generative Hero) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    
-    <!-- 4. Load Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
 
-    <!-- 5. Custom CSS -->
     <style>
         /*
         ========================================
@@ -73,12 +73,17 @@
         */
 
         body {
-            background-color: #111318;
+            /* OVERHAUL: Replaced Three.js with a lightweight, high-performance
+            pure CSS animated gradient background. This is the "Kinetic" motion.
+            */
+            background: linear-gradient(135deg, #0A0A0E 25%, #111318 50%, #1B1D24 75%, #0A0A0E 100%);
+            background-size: 400% 400%;
+            animation: kinetic-bg 20s ease infinite;
+            
             color: #A9AEBB;
             font-family: 'Inter', sans-serif;
-            /* Hide the default browser cursor */
-            cursor: none;
-            overflow-x: hidden; /* Prevent horizontal scroll */
+            cursor: auto; /* Use native cursor for max compatibility */
+            overflow-x: hidden;
         }
         
         /* Ensure smooth scroll for anchor links */
@@ -88,18 +93,21 @@
             scroll-padding-top: 80px; 
         }
 
-        /* --- 1. The "Living" Cursor (Desktop Only) --- */
+        /* --- 1. Custom Cursor (Simplified - Desktop Only) --- */
+        /* This is a common point of failure. I've kept it but ensured
+        it's desktop-only and will not break the site if it fails.
+        */
         @media (min-width: 1024px) {
+            body { cursor: none; }
             #custom-cursor {
                 position: fixed;
                 left: 0;
                 top: 0;
                 pointer-events: none;
                 z-index: 9999;
-                transition: transform 0.2s ease-out, width 0.3s ease-out, height 0.3s ease-out, background-color 0.3s ease;
-                mix-blend-mode: exclusion; /* Cool effect on text */
+                transition: transform 0.2s ease-out, width 0.3s ease-out, height 0.3s ease-out;
+                mix-blend-mode: exclusion;
             }
-
             #cursor-dot {
                 width: 10px;
                 height: 10px;
@@ -109,88 +117,42 @@
                 transition: all 0.3s ease-out;
                 animation: pulseSlow 3s infinite ease-in-out;
             }
-            
             #cursor-text {
                 position: absolute;
-                top: 50%;
-                left: 50%;
+                top: 50%; left: 50%;
                 transform: translate(-50%, -50%);
-                font-size: 10px;
-                font-weight: 700;
-                color: #00FFAB;
-                opacity: 0;
+                font-size: 10px; font-weight: 700;
+                color: #00FFAB; opacity: 0;
                 transition: opacity 0.3s ease-out;
             }
-
-            /* Cursor "Grow" State (on links/buttons) */
             #custom-cursor.grow #cursor-dot {
                 transform: translate(-50%, -50%) scale(5);
-                background-color: #00FFAB;
                 opacity: 0.5;
             }
-            
-            /* Cursor "View" State (on media) */
             #custom-cursor.view #cursor-dot {
-                width: 50px;
-                height: 50px;
-                background-color: #00FFAB;
-                opacity: 0.2;
-                animation: none; /* Stop pulsing */
+                width: 50px; height: 50px;
+                opacity: 0.2; animation: none;
             }
-            #custom-cursor.view #cursor-text {
-                opacity: 1;
-            }
+            #custom-cursor.view #cursor-text { opacity: 1; }
         }
         
-        /* On mobile, use the native cursor */
-        @media (max-width: 1023px) {
-            body {
-                cursor: auto;
-            }
-            #custom-cursor {
-                display: none;
-            }
-        }
-
         /* --- 2. Custom Scrollbar --- */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0A0A0E;
-        }
-        ::-webkit-scrollbar-thumb {
-            background-color: #00FFAB;
-            border-radius: 3px;
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0A0A0E; }
+        ::-webkit-scrollbar-thumb { background-color: #00FFAB; border-radius: 3px; }
 
-        /* --- 3. Generative Hero Canvas --- */
-        #hero-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            z-index: 0;
-            opacity: 0.4; /* Subtle, in the background */
-            transition: opacity 0.5s ease-out;
-        }
-        
-        /* Fade hero canvas on scroll */
-        body.scrolled #hero-canvas {
-            opacity: 0.1 !important;
-        }
+        /* --- 3. Generative Hero Canvas (REMOVED) --- */
+        /* #hero-canvas { display: none; } */
         
         /* --- 4. Main Content Styling --- */
         main, header, footer {
             position: relative;
-            z-index: 2; /* Ensure content is above hero canvas */
+            z-index: 2; /* Content is above the body background */
         }
         
         header {
-            background-color: rgba(17, 19, 24, 0.8); /* Midnight Steel w/ transparency */
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            /* Solid header for performance */
+            background-color: #111318;
             border-bottom: 1px solid #1B1D24; /* Deep Graphene border */
         }
         
@@ -212,22 +174,14 @@
             transition: all 0.3s ease;
         }
         .btn-shimmer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 50%;
-            height: 100%;
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 50%; height: 100%;
             background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
             transform: translateX(-150%);
             transition: transform 0.6s ease;
         }
-        .btn-shimmer:hover::before {
-            transform: translateX(250%);
-        }
-        .btn-shimmer:hover {
-            box-shadow: 0 0 15px rgba(0, 255, 171, 0.5); /* Kinetic glow */
-        }
+        .btn-shimmer:hover::before { transform: translateX(250%); }
+        .btn-shimmer:hover { box-shadow: 0 0 15px rgba(0, 255, 171, 0.5); }
         
         /* Nav link active state */
         .nav-link {
@@ -235,21 +189,16 @@
             transition: color 0.3s ease;
         }
         .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 100%;
-            height: 2px;
+            content: ''; position: absolute;
+            bottom: -5px; left: 0;
+            width: 100%; height: 2px;
             background-color: #00FFAB;
             transform: scaleX(0);
             transform-origin: right;
             transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
         }
         .nav-link:hover,
-        .nav-link.active {
-            color: #FFFFFF;
-        }
+        .nav-link.active { color: #FFFFFF; }
         .nav-link:hover::after,
         .nav-link.active::after {
             transform: scaleX(1);
@@ -260,36 +209,26 @@
         .case-study-media {
             filter: grayscale(100%);
             transition: filter 0.5s ease;
+            object-fit: cover; /* Ensures images fill their container */
+            aspect-ratio: 4 / 3; /* Consistent aspect ratio */
         }
         .case-study-card:hover .case-study-media {
             filter: grayscale(0%);
         }
         
-        /* Services sticky list active state */
-        .service-title.active {
-            color: #00FFAB;
-            transform: translateX(10px);
-        }
-        
         /* --- 6. Mobile Menu --- */
         #mobile-menu {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
+            top: 0; left: 0;
+            width: 100%; height: 100vh;
             background-color: #0A0A0E; /* Obsidian Charcoal */
             z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             transform: translateX(100%);
             transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
-        #mobile-menu.open {
-            transform: translateX(0);
-        }
+        #mobile-menu.open { transform: translateX(0); }
         
         #mobile-menu .nav-link {
             font-size: 2.25rem; /* text-4xl */
@@ -297,52 +236,34 @@
             margin: 1.25rem 0; /* my-5 */
             color: #A9AEBB;
         }
-        #mobile-menu .nav-link.active {
-            color: #FFFFFF;
-        }
+        #mobile-menu .nav-link.active { color: #FFFFFF; }
         
         /* Hamburger Button */
-        #mobile-menu-btn {
-            z-index: 110;
-        }
+        #mobile-menu-btn { z-index: 110; }
         #mobile-menu-btn .line {
             transition: all 0.3s ease-in-out;
             background-color: #FFFFFF;
         }
-        #mobile-menu-btn.open .line1 {
-            transform: rotate(-45deg) translate(-5px, 6px);
-        }
-        #mobile-menu-btn.open .line2 {
-            opacity: 0;
-        }
-        #mobile-menu-btn.open .line3 {
-            transform: rotate(45deg) translate(-5px, -6px);
-        }
-
+        #mobile-menu-btn.open .line1 { transform: rotate(-45deg) translate(-5px, 6px); }
+        #mobile-menu-btn.open .line2 { opacity: 0; }
+        #mobile-menu-btn.open .line3 { transform: rotate(45deg) translate(-5px, -6px); }
 
     </style>
 </head>
 
 <body class="bg-midnight-steel text-neutral-grey font-sans selection:bg-kinetic-mint selection:text-midnight-steel">
     
-    <!-- 1. "Living" Cursor (Desktop Only) -->
     <div id="custom-cursor">
         <div id="cursor-dot"></div>
         <span id="cursor-text">VIEW</span>
     </div>
 
-    <!-- 2. Generative Hero Background -->
-    <div id="hero-canvas"></div>
-
-    <!-- 3. Header & Navigation -->
     <header class="fixed top-0 left-0 w-full p-6 md:p-8 z-50">
         <div class="container mx-auto max-w-7xl flex justify-between items-center">
-            <!-- Logo -->
             <a href="#home" class="font-bold text-xl text-white data-hoverable nav-link" data-section="home">
                 Motion<span class="text-kinetic-mint">.</span>
             </a>
             
-            <!-- Desktop Navigation -->
             <nav class="hidden md:flex space-x-8">
                 <a href="#home" class="nav-link active data-hoverable" data-section="home">Home</a>
                 <a href="#vectors" class="nav-link data-hoverable" data-section="vectors">Our Vectors</a>
@@ -350,12 +271,10 @@
                 <a href="#motive" class="nav-link data-hoverable" data-section="motive">The Motive</a>
             </nav>
             
-            <!-- CTA (visible on desktop) -->
             <button class="hidden md:block btn-shimmer bg-kinetic-mint text-obsidian-charcoal font-bold py-3 px-6 rounded-md text-sm data-hoverable" data-modal-open="contact-modal">
                 Start the Reaction
             </button>
             
-            <!-- Mobile Menu Button -->
             <button id="mobile-menu-btn" class="md:hidden space-y-1.5 p-2">
                 <span class="line line1 block w-6 h-0.5"></span>
                 <span class="line line2 block w-6 h-0.5"></span>
@@ -364,7 +283,6 @@
         </div>
     </header>
     
-    <!-- Mobile Menu -->
     <div id="mobile-menu">
         <a href="#home" class="nav-link active data-hoverable" data-section="home">Home</a>
         <a href="#vectors" class="nav-link data-hoverable" data-section="vectors">Our Vectors</a>
@@ -375,14 +293,8 @@
         </button>
     </div>
 
-    <!-- 4. Main Content (Page Wrapper) -->
     <main class="container mx-auto max-w-7xl px-6 md:px-8">
 
-        <!-- 
-        ========================================
-        PAGE 1: HOME
-        ========================================
-        -->
         <section id="home" class="page-content min-h-screen flex items-center justify-center text-center pt-20">
             <div class="relative z-10">
                 <h1 class="text-6xl md:text-8xl lg:text-9xl font-extrabold text-white reveal">
@@ -395,97 +307,72 @@
             </div>
         </section>
 
-        <!-- 
-        ========================================
-        PAGE 2: OUR VECTORS (Services)
-        ========================================
-        -->
         <section id="vectors" class="page-content py-24 md:py-48 min-h-screen">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
-                <!-- Sticky Title Column (Desktop) / Header (Mobile) -->
-                <div class="md:col-span-5">
-                    <div class="md:sticky md:top-32 space-y-8">
-                        <h2 class="text-5xl md:text-6xl font-bold text-white reveal">Our Vectors</h2>
-                        <div class="space-y-4">
-                            <h3 id="service-title-1" class="service-title active text-2xl font-bold text-neutral-grey transition-all duration-300 ease-out data-hoverable">
-                                Brand Velocity
-                            </h3>
-                            <h3 id="service-title-2" class="service-title text-2xl font-bold text-neutral-grey transition-all duration-300 ease-out data-hoverable">
-                                Performance SEO
-                            </h3>
-                            <h3 id="service-title-3" class="service-title text-2xl font-bold text-neutral-grey transition-all duration-300 ease-out data-hoverable">
-                                Data Synthesis
-                            </h3>
-                            <h3 id="service-title-4" class="service-title text-2xl font-bold text-neutral-grey transition-all duration-300 ease-out data-hoverable">
-                                Kinetic Content
-                            </h3>
-                        </div>
-                    </div>
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-5xl md:text-6xl font-bold text-white reveal">Our Vectors</h2>
+                <p class="text-xl text-neutral-grey mt-6 reveal reveal-delay-1">
+                    We don't offer "services." We apply directed force. Each vector is designed to create momentum and tangible market velocity.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-24">
+                <div class="bg-deep-graphene p-8 rounded-lg border border-neutral-grey/10 reveal">
+                    <h4 class="text-3xl font-bold text-white mb-4">Brand Velocity</h4>
+                    <p class="text-lg mb-4">
+                        A brand isn't a logo. It's a force. We accelerate your identity from a static concept into a high-momentum market presence that creates its own gravity.
+                    </p>
+                    <ul class="list-disc list-inside space-y-2 text-kinetic-mint">
+                        <li><span class="text-neutral-grey">Identity & Positioning</span></li>
+                        <li><span class="text-neutral-grey">Campaign Strategy</span></li>
+                        <li><span class="text-neutral-grey">Audience Momentum Mapping</span></li>
+                    </ul>
+                </div>
+
+                <div class="bg-deep-graphene p-8 rounded-lg border border-neutral-grey/10 reveal reveal-delay-1">
+                    <h4 class="text-3xl font-bold text-white mb-4">Performance SEO</h4>
+                    <p class="text-lg mb-4">
+                        We treat search as a dynamic energy system. We convert the potential energy of search trends into the kinetic energy of qualified traffic.
+                    </p>
+                    <ul class="list-disc list-inside space-y-2 text-kinetic-mint">
+                        <li><span class="text-neutral-grey">Technical SEO Audits</span></li>
+                        <li><span class="text-neutral-grey">Predictive Keyword Analysis</span></li>
+                        <li><span class="text-neutral-grey">Authority Acceleration</span></li>
+                    </ul>
                 </div>
                 
-                <!-- Scrolling Description Column -->
-                <div class="md:col-span-7 space-y-24 md:space-y-32 mt-12 md:mt-0">
-                    <div id="service-desc-1" class="service-description reveal">
-                        <h4 class="text-3xl font-bold text-white mb-4">Brand Velocity</h4>
-                        <p class="text-lg mb-4">
-                            A brand isn't a logo. It's a force. We don't just build brands; we accelerate them. We define your unique market position and build a high-momentum identity that cuts through the noise and creates its own gravity.
-                        </p>
-                        <ul class="list-disc list-inside space-y-2">
-                            <li>Identity & Positioning</li>
-                            <li>Multi-channel Campaign Strategy</li>
-                            <li>Audience Momentum Mapping</li>
-                        </ul>
-                    </div>
-                    <div id="service-desc-2" class="service-description reveal">
-                        <h4 class="text-3xl font-bold text-white mb-4">Performance SEO</h4>
-                        <p class="text-lg mb-4">
-                            We treat search as a dynamic energy system, not a static checklist. Our approach identifies the potential energy in search trends and converts it into kinetic traffic, capturing high-intent users before your competitors even know they exist.
-                        </p>
-                        <ul class="list-disc list-inside space-y-2">
-                            <li>Technical SEO Audits</li>
-                            <li>Predictive Keyword Analysis</li>
-                            <li>E-A-T & Authority Acceleration</li>
-                        </ul>
-                    </div>
-                    <div id="service-desc-3" class="service-description reveal">
-                        <h4 class="text-3xl font-bold text-white mb-4">Data Synthesis</h4>
-                        <p class="text-lg mb-4">
-                            Data is noise. Synthesis is power. We don't just report numbers; we find the hidden motion within them. We connect disparate data points to reveal the underlying forces driving your business, turning raw data into decisive action.
-                        </p>
-                        <ul class="list-disc list-inside space-y-2">
-                            <li>Full-Funnel Attribution</li>
-                            <li>Customer Lifetime Value (CLV) Modeling</li>
-                            <li>Market & Competitor Analytics</li>
-                        </ul>
-                    </div>
-                    <div id="service-desc-4" class="service-description reveal">
-                        <h4 class="text-3xl font-bold text-white mb-4">Kinetic Content</h4>
-                        <p class="text-lg mb-4">
-                            Content that doesn't move people is static. We create high-impact assets—video, interactive, and written—designed for one purpose: to transfer energy to your audience, compelling them to act, share, and convert.
-                        </p>
-                        <ul class="list-disc list-inside space-y-2">
-                            <li>Video & Motion Graphics</li>
-                            <li>Interactive Web Experiences</li>
-                            <li>Long-Form Thought Leadership</li>
-                        </ul>
-                    </div>
+                <div class="bg-deep-graphene p-8 rounded-lg border border-neutral-grey/10 reveal reveal-delay-2">
+                    <h4 class="text-3xl font-bold text-white mb-4">Data Synthesis</h4>
+                    <p class="text-lg mb-4">
+                        Data is noise. Synthesis is power. We find the hidden motion within your data, connecting disparate points to turn raw numbers into decisive action.
+                    </p>
+                    <ul class="list-disc list-inside space-y-2 text-kinetic-mint">
+                        <li><span class="text-neutral-grey">Full-Funnel Attribution</span></li>
+                        <li><span class="text-neutral-grey">CLV & Cohort Modeling</span></li>
+                        <li><span class="text-neutral-grey">Market Analytics</span></li>
+                    </ul>
+                </div>
+
+                <div class="bg-deep-graphene p-8 rounded-lg border border-neutral-grey/10 reveal reveal-delay-3">
+                    <h4 class="text-3xl font-bold text-white mb-4">Kinetic Content</h4>
+                    <p class="text-lg mb-4">
+                        Content that doesn't move people is static. We create high-impact video, interactive, and written assets designed to transfer energy and compel action.
+                    </p>
+                    <ul class="list-disc list-inside space-y-2 text-kinetic-mint">
+                        <li><span class="text-neutral-grey">Video & Motion Graphics</span></li>
+                        <li><span class="text-neutral-grey">Interactive Web Experiences</span></li>
+                        <li><span class="text-neutral-grey">Thought Leadership</span></li>
+                    </ul>
                 </div>
             </div>
         </section>
 
-        <!-- 
-        ========================================
-        PAGE 3: OUR MOTION (Case Studies)
-        ========================================
-        -->
         <section id="motion" class="page-content py-24 md:py-48 min-h-screen">
             <h2 class="text-5xl md:text-6xl font-bold text-white mb-12 reveal">Our Motion: <span class="text-neutral-grey">Proof, Not Promises.</span></h2>
             
             <div class="space-y-24">
-                <!-- Case Study 1 -->
                 <div class="case-study-card grid grid-cols-1 md:grid-cols-12 gap-8 items-center reveal" data-hoverable-media="true">
-                    <div class="md:col-span-7">
-                        <img src="https://placehold.co/800x600/1B1D24/A9AEBB?text=Project+A+Visual" alt="Case Study 1" class="case-study-media w-full rounded-lg shadow-2xl">
+                    <div class="md:col-span-7 rounded-lg overflow-hidden shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" alt="Data Analytics Dashboard" class="case-study-media w-full">
                     </div>
                     <div class="md:col-span-5">
                         <h3 class="text-3xl font-bold text-white mb-2">Project: Cybria</h3>
@@ -497,11 +384,9 @@
                     </div>
                 </div>
 
-                <!-- Case Study 2 -->
                 <div class="case-study-card grid grid-cols-1 md:grid-cols-12 gap-8 items-center reveal" data-hoverable-media="true">
-                    <!-- On mobile, image is first. On desktop, text is first. -->
-                    <div class="md:col-span-7 md:col-start-6">
-                        <img src="https://placehold.co/800x600/1B1D24/A9AEBB?text=Project+B+Visual" alt="Case Study 2" class="case-study-media w-full rounded-lg shadow-2xl">
+                    <div class="md:col-span-7 md:col-start-6 rounded-lg overflow-hidden shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1600880292203-942bb68b243b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" alt="E-commerce strategy session" class="case-study-media w-full">
                     </div>
                     <div class="md:col-span-5 md:row-start-1">
                         <h3 class="text-3xl font-bold text-white mb-2">Project: Nova</h3>
@@ -515,11 +400,6 @@
             </div>
         </section>
 
-        <!-- 
-        ========================================
-        PAGE 4: THE MOTIVE (About)
-        ========================================
-        -->
         <section id="motive" class="page-content py-24 md:py-48 min-h-screen">
             <div class="text-center max-w-3xl mx-auto">
                 <h2 class="text-5xl md:text-6xl font-bold text-white reveal">Energy is never lost.</h2>
@@ -530,22 +410,25 @@
             </div>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-24">
-                <!-- Team Member 1 -->
                 <div class="text-center reveal" data-hoverable-media="true">
-                    <img src="https://placehold.co/400x400/1B1D24/A9AEBB?text=Team+Portrait" alt="Team Member 1" class="case-study-media w-full h-auto rounded-lg mb-4">
-                    <h4 class="text-xl font-bold text-white">Alex Chen</h4>
+                    <div class="rounded-lg overflow-hidden shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80" alt="Team Portrait 1" class="case-study-media w-full">
+                    </div>
+                    <h4 class="text-xl font-bold text-white mt-4">Alex Chen</h4>
                     <p class="text-kinetic-mint">Chief Velocity Officer</p>
                 </div>
-                <!-- Team Member 2 -->
                 <div class="text-center reveal reveal-delay-1" data-hoverable-media="true">
-                    <img src="https://placehold.co/400x400/1B1D24/A9AEBB?text=Team+Portrait" alt="Team Member 2" class="case-study-media w-full h-auto rounded-lg mb-4">
-                    <h4 class="text-xl font-bold text-white">Maria Sanchez</h4>
+                    <div class="rounded-lg overflow-hidden shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1521119989659-a83eee488004?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80" alt="Team Portrait 2" class="case-study-media w-full">
+                    </div>
+                    <h4 class="text-xl font-bold text-white mt-4">Maria Sanchez</h4>
                     <p class="text-kinetic-mint">Head of Kinetic Content</p>
                 </div>
-                <!-- Team Member 3 -->
                 <div class="text-center reveal reveal-delay-2" data-hoverable-media="true">
-                    <img src="https://placehold.co/400x400/1B1D24/A9AEBB?text=Team+Portrait" alt="Team Member 3" class="case-study-media w-full h-auto rounded-lg mb-4">
-                    <h4 class="text-xl font-bold text-white">David Kim</h4>
+                    <div class="rounded-lg overflow-hidden shadow-2xl">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80" alt="Team Portrait 3" class="case-study-media w-full">
+                    </div>
+                    <h4 class="text-xl font-bold text-white mt-4">David Kim</h4>
                     <p class="text-kinetic-mint">Lead Data Synthesist</p>
                 </div>
             </div>
@@ -553,15 +436,9 @@
 
     </main>
 
-    <!-- 
-    ========================================
-    FOOTER SECTION (with your info)
-    ========================================
-    -->
     <footer class="py-24 bg-obsidian-charcoal border-t border-deep-graphene">
         <div class="container mx-auto max-w-7xl px-6 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-16">
             
-            <!-- Column 1: About -->
             <div class="reveal">
                 <h3 class="font-bold text-xl text-white mb-4">
                     Motion<span class="text-kinetic-mint">.</span>
@@ -571,12 +448,11 @@
                 </p>
             </div>
             
-            <!-- Column 2: Connect (Your Info) -->
             <div class="reveal reveal-delay-1">
                 <h3 class="text-lg font-bold text-white mb-4">Direct Connection</h3>
                 <div class="space-y-3">
                     <p class="flex flex-col sm:flex-row">
-                        <span class="text-neutral-grey/70 w-20 inline-block">Email:</span>
+                        <span class="text-neutral-grey/70 w-20 inline-block shrink-0">Email:</span>
                         <a href="mailto:Jaren.Dev@proton.me" class="text-neutral-grey hover:text-kinetic-mint transition-colors data-hoverable break-all">Jaren.Dev@proton.me</a>
                     </p>
                     <p>
@@ -594,7 +470,6 @@
                 </div>
             </div>
 
-            <!-- Column 3: CTA -->
             <div class="reveal reveal-delay-2">
                 <h3 class="text-lg font-bold text-white mb-4">Start a New Project?</h3>
                 <p class="text-neutral-grey mb-6">Let's apply our energy to your brand. Click below to start the reaction.</p>
@@ -605,20 +480,13 @@
 
         </div>
         
-        <!-- Copyright -->
         <div class="text-center text-neutral-grey/50 mt-24 pt-8 border-t border-deep-graphene reveal reveal-delay-3">
             &copy; 2025 Motion Marketing. All rights reserved.
         </div>
     </footer>
 
-    <!-- 
-    ========================================
-    MODAL: START THE REACTION (Contact)
-    ========================================
-    -->
     <div id="contact-modal" class="fixed inset-0 bg-obsidian-charcoal bg-opacity-90 flex items-center justify-center p-4 z-[100] hidden animate-fade-in" data-modal>
         <div class="bg-deep-graphene p-8 rounded-lg shadow-2xl w-full max-w-md relative reveal">
-            <!-- Close Button -->
             <button class="absolute top-4 right-4 text-neutral-grey data-hoverable" data-modal-close="contact-modal">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -647,16 +515,8 @@
     </div>
 
 
-    <!-- 
-    ========================================
-    JAVASCRIPT (All modules in one place)
-    ========================================
-    -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-
-            // Define heroCanvas at the top level so all modules can access it.
-            const heroCanvas = document.getElementById('hero-canvas');
             
             /*
             ========================================
@@ -681,81 +541,10 @@
                     el.addEventListener('mouseleave', () => cursor.classList.remove('view'));
                 });
             }
-
-            /*
-            ========================================
-            MODULE 2: GENERATIVE HERO (THREE.JS)
-            ========================================
-            */
-            if (heroCanvas) {
-                let scene, camera, renderer, particles, geometry;
-                let mouseX = 0, mouseY = 0;
-                const windowHalfX = window.innerWidth / 2;
-                const windowHalfY = window.innerHeight / 2;
-
-                function initThree() {
-                    scene = new THREE.Scene();
-                    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
-                    camera.position.z = 1000;
-                    geometry = new THREE.BufferGeometry();
-                    const vertices = [];
-                    const numParticles = 5000;
-
-                    for (let i = 0; i < numParticles; i++) {
-                        vertices.push(Math.random() * 2000 - 1000, Math.random() * 2000 - 1000, Math.random() * 2000 - 1000);
-                    }
-                    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-                    const material = new THREE.PointsMaterial({
-                        color: 0x00FFAB, size: 2, transparent: true, opacity: 0.7
-                    });
-                    particles = new THREE.Points(geometry, material);
-                    scene.add(particles);
-                    renderer = new THREE.WebGLRenderer({ canvas: heroCanvas, alpha: true });
-                    renderer.setSize(window.innerWidth, window.innerHeight);
-                    renderer.setClearColor(0x000000, 0); 
-
-                    document.addEventListener('mousemove', onDocumentMouseMove);
-                    window.addEventListener('resize', onWindowResize);
-                }
-
-                function onWindowResize() {
-                    camera.aspect = window.innerWidth / window.innerHeight;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(window.innerWidth, window.innerHeight);
-                }
-
-                function onDocumentMouseMove(event) {
-                    mouseX = (event.clientX - windowHalfX) * 0.5;
-                    mouseY = (event.clientY - windowHalfY) * 0.5;
-                }
-
-                function animateThree() {
-                    requestAnimationFrame(animateThree);
-                    const time = Date.now() * 0.00005;
-                    camera.position.x += (mouseX - camera.position.x) * 0.03;
-                    camera.position.y += (-mouseY - camera.position.y) * 0.03;
-                    camera.lookAt(scene.position);
-                    particles.rotation.x = time * 0.2;
-                    particles.rotation.y = time * 0.1;
-                    renderer.render(scene, camera);
-                }
-
-                initThree();
-                animateThree();
-            }
             
-            // Fade hero canvas on scroll
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 50) {
-                    document.body.classList.add('scrolled');
-                } else {
-                    document.body.classList.remove('scrolled');
-                }
-            });
-
             /*
             ========================================
-            MODULE 3: MOBILE NAVIGATION
+            MODULE 2: MOBILE NAVIGATION
             ========================================
             */
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');
@@ -772,29 +561,28 @@
                 mobileMenu.classList.remove('open');
             };
             
-            // Close menu when a link is clicked
             mobileMenuLinks.forEach(link => {
                 link.addEventListener('click', closeMobileMenu);
             });
             
-            // Close menu when modal is opened
             document.querySelectorAll('[data-modal-open]').forEach(btn => {
                 btn.addEventListener('click', closeMobileMenu);
             });
 
             /*
             ========================================
-            MODULE 4: SCROLL-BASED INTERACTIONS
+            MODULE 3: SCROLL-BASED INTERACTIONS
             ========================================
             */
             const allNavLinks = document.querySelectorAll('.nav-link[data-section]');
-            const allSections = document.querySelectorAll('.page-content');
             
-            // --- 4a. Count-Up Animation ---
+            // --- 3a. Count-Up Animation ---
             function animateCountUp(el) {
                 const target = parseInt(el.getAttribute('data-count-up'), 10);
+                if (isNaN(target)) return;
+                
                 let current = 0;
-                const increment = Math.max(1, target / 100); // Ensure increment is at least 1
+                const increment = Math.max(1, Math.ceil(target / 100)); // Ensure increment is at least 1
                 
                 function updateCount() {
                     current += increment;
@@ -807,20 +595,8 @@
                 }
                 updateCount();
             }
-
-            // --- 4b. Sticky Service List Highlight (Desktop) ---
-            const serviceTitles = document.querySelectorAll('.service-title');
-            function updateActiveService(id) {
-                serviceTitles.forEach(title => {
-                    if (title.id === `service-title-${id}`) {
-                        title.classList.add('active');
-                    } else {
-                        title.classList.remove('active');
-                    }
-                });
-            }
             
-            // --- 4c. Active Nav Link Highlighting ---
+            // --- 3b. Active Nav Link Highlighting ---
             function updateActiveNav(id) {
                 allNavLinks.forEach(link => {
                     if (link.getAttribute('data-section') === id) {
@@ -831,11 +607,11 @@
                 });
             }
 
-            // --- 4d. Intersection Observer ---
+            // --- 3c. Intersection Observer ---
             const observerOptions = {
                 root: null,
                 rootMargin: '0px',
-                threshold: [0.1, 0.4, 0.9] // Multiple thresholds for different logic
+                threshold: [0.1, 0.4] // Simplified thresholds
             };
             
             const observer = new IntersectionObserver((entries) => {
@@ -846,15 +622,9 @@
                     }
 
                     // --- Count-Up Trigger ---
-                    if (entry.target.hasAttribute('data-count-up') && entry.isIntersecting) {
+                    if (entry.target.hasAttribute('data-count-up') && entry.intersectionRatio > 0.1) {
                         animateCountUp(entry.target);
                         observer.unobserve(entry.target); // Only count up once
-                    }
-
-                    // --- Sticky Service Trigger (Desktop) ---
-                    if (entry.target.classList.contains('service-description') && entry.intersectionRatio >= 0.4 && window.matchMedia('(min-width: 768px)').matches) {
-                        const id = entry.target.id.split('-')[2];
-                        updateActiveService(id);
                     }
                     
                     // --- Active Nav Highlighting ---
@@ -865,13 +635,13 @@
             }, observerOptions);
 
             // Observe all relevant elements
-            document.querySelectorAll('.reveal, [data-count-up], .service-description, .page-content').forEach(el => {
-                observer.observe(el);
+            document.querySelectorAll('.reveal, [data-count-up], .page-content').forEach(el => {
+                if(el) observer.observe(el);
             });
             
             /*
             ========================================
-            MODULE 5: MODAL LOGIC
+            MODULE 4: MODAL LOGIC
             ========================================
             */
             const openModalButtons = document.querySelectorAll('[data-modal-open]');
@@ -881,12 +651,14 @@
             openModalButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     const modalId = button.getAttribute('data-modal-open');
-                    document.getElementById(modalId).classList.remove('hidden');
+                    const modal = document.getElementById(modalId);
+                    if(modal) modal.classList.remove('hidden');
                 });
             });
 
             const closeModal = (modalId) => {
-                 document.getElementById(modalId).classList.add('hidden');
+                 const modal = document.getElementById(modalId);
+                 if(modal) modal.classList.add('hidden');
             };
 
             closeModalButtons.forEach(button => {
@@ -909,5 +681,4 @@
     </script>
 </body>
 </html>
-
-
+```eof
